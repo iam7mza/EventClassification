@@ -37,4 +37,6 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
-EOF
+EOF__pycache__/
+*.pyc
+*.pyo
