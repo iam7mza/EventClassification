@@ -275,3 +275,46 @@ def load(csv_files_path, unique=True, targettype='onehot'):
 
     print(f"\nFinal dataset shape: {combined_df.shape}")
     return combined_df
+
+
+def clean(df):
+    """
+    Cleans dataframe by removing any values that are empty list or lists with only one value
+    [] -> [0,0] and [val] -> [val,0]
+
+    args:
+        df: DataFrame to clean
+    returns:
+        pd.DataFrame: Cleaned DataFrame
+    """
+    list_columns = []
+    for col in df.columns:
+        if df[col].dtype == 'object':  # String columns that might contain lists
+            sample_values = df[col].dropna().head(5).values
+            if any('[' in str(val) for val in sample_values):
+                list_columns.append(col)
+
+    if list_columns == []:
+        print("No list columns found to clean.")
+        return df
+
+    def fix_list_cell(x):
+        # parse the string into a Python list if needed
+        if isinstance(x, str):
+            try:
+                x = ast.literal_eval(x)
+            except (ValueError, SyntaxError):
+                return x
+        # now x is either a list or something else
+        if isinstance(x, list):
+            if len(x) == 0:
+                return [0, 0]
+            if len(x) == 1:
+                return [x[0], 0]
+        return x
+
+    for col in list_columns:
+        df[col] = df[col].apply(fix_list_cell)
+
+    print(f"Cleaned {len(list_columns)} list columns in DataFrame")
+    return df
