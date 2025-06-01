@@ -4,148 +4,11 @@ import os
 import glob
 import ast
 
-def create_event_type_mapping(csv_files):
-    """
-    Create a dictionary mapping event types to target numbers
-    
-    Args:
-        csv_files: List of CSV file paths
-    
-    Returns:
-        dict: Dictionary mapping event_type to target number
-    """
-    event_to_target = {}
-    current_target = 0
-    
-    # Extract unique event types from filenames
-    for csv_file in csv_files:
-        filename = os.path.basename(csv_file)  # Get just the filename
-        event_name = filename.replace('.csv', '')  # Remove .csv extension
-        # Remove _sample suffix if it exists
-        if '_sample' in event_name:
-            event_name = event_name.split('_sample')[0]
-        event_type = event_name.split('_')[0]  # Extract the first part
-        
-        # Assign target if not seen before
-        if event_type not in event_to_target:
-            event_to_target[event_type] = current_target
-            current_target += 1
-    
-    return event_to_target
-
-
-def create_unique_event_mapping(csv_files):
-    """
-    Create a dictionary mapping unique particle types to target numbers
-    Groups similar particles together (e.g., all Z bosons get same target)
-    
-    Args:
-        csv_files: List of CSV file paths
-    
-    Returns:
-        dict: Dictionary mapping event_type to target number based on unique particles
-    """
-    event_to_target = {}
-    current_target = 0
-    
-    # Define particle groupings - add more as needed
-    #TODO check list and update properly; also discuss with Andrea and maybe Prof#
-    particle_groups = {
-        'Z': ['Z', 'Zee', 'Zmumu', 'Ztautau', 'ZqqZll',],
-        'W': ['W', 'Wenu', 'Wmunu', 'Wtaunu', 'Wminusenu', 'Wminusmunu', 'Wplusenu', 'Wplusmunu', 'Wplustaunu', 'WlvZqq', 'WqqZll', 'WplvWmqq', 'Wminustaunu'],
-        'H': ['H', 'Higgs', 'Hbb', 'Hgg', 'Hww', 'Hzz', 'Htt'],
-        'ttbar': ['ttbar', 'tt', 'ttH', 'ttW', 'ttZ'],
-        'QCD': ['QCD', 'dijet', 'multijet'],
-        'singletop': ['single', 'singletop', 'st', 'tchan', 'schan', 'Wt', 'wtchan'],
-        'VV': ['WW', 'WZ', 'ZZ', 'VV', 'diboson', 'llvv', 'lvvv', 'lllv'],
-        'TT': ['TT'],  # Direct TT production
-        'GG': ['GG'],  # Gluon-gluon processes
-        'C1N2': ['C1N2'],  # SUSY processes
-        'ZPrime': ['ZPrime400', 'ZPrime500', 'ZPrime750', 'ZPrime1000', 'ZPrime1250', 'ZPrime1500', 'ZPrime1750', 'ZPrime2000', 'ZPrime2250','ZPrime2500', 'ZPrime2750','ZPrime3000']
-    }
-    
-    # Create reverse mapping: specific event -> particle group
-    event_to_particle = {}
-    for particle, variations in particle_groups.items():
-        for variation in variations:
-            event_to_particle[variation] = particle
-    
-    # Extract unique particle types from filenames
-    unique_particles = set()
-    for csv_file in csv_files:
-        filename = os.path.basename(csv_file)
-        event_name = filename.replace('.csv', '')  # Remove .csv extension
-        # Remove _sample suffix if it exists
-        if '_sample' in event_name:
-            event_name = event_name.split('_sample')[0]
-        
-        event_type = event_name.split('_')[0]
-        
-        # Find which particle group this belongs to
-        particle = event_to_particle.get(event_type, event_type)  # Default to itself if not found
-        unique_particles.add(particle)
-    
-    # Assign targets to unique particles
-    particle_to_target = {}
-    for particle in sorted(unique_particles):
-        particle_to_target[particle] = current_target
-        current_target += 1
-    
-    # Create final mapping for all event types
-    for csv_file in csv_files:
-        filename = os.path.basename(csv_file)
-        event_name = filename.replace('.csv', '')  # Remove .csv extension
-        # Remove _sample suffix if it exists
-        if '_sample' in event_name:
-            event_name = event_name.split('_sample')[0]
-            
-        event_type = event_name.split('_')[0]
-        
-        # Map to particle group, then to target
-        particle = event_to_particle.get(event_type, event_type)
-        event_to_target[event_type] = particle_to_target[particle]
-    
-    return event_to_target
-
-
-def target_to_vector(targetDict):
-    """
-    Convert a dictionary mapping event types to target numbers into one-hot encoded vectors
-    
-    Args:
-        targetDict: Dictionary mapping event_type to target number
-    
-    Returns:
-        dict: Dictionary mapping event_type to one-hot encoded vector
-    """
-    num_classes = len(set(targetDict.values()))  # Number of unique targets
-    target_to_onehot = {}
-    
-    for event_type, target in targetDict.items():
-        one_hot = np.zeros(num_classes)
-        one_hot[target] = 1
-        target_to_onehot[event_type] = one_hot
-    
-    return target_to_onehot
-
-
-
-# csv_files = glob.glob('csv_output/*.csv')
-
-# targets = create_unique_event_mapping(csv_files)
-# targets = target_to_vector(targets) #converting to one-hot encoded vectors
-
-
-##TODO : create a function that make the df with the targets###
-####### should be similar to the event_classification.py file ########
-
-def load(csv_files_path, unique=True, targettype='onehot'):
+def load(csv_files_path):
     """
     Loads CSV files and returns a dataframe with all event and corresponding targets
     Args:
         csv_files_path: Path to CSV files
-        unique: If True, uses unique event mapping (i.e. all events with initial state Z will have the same target); otherwise uses event type mapping
-        targettype: Type of target to return; 'onehot' for one-hot encoded vectors, 'num' for numeric targets
 
     Returns:
         pd.DataFrame: DataFrame containing all events and their targets, 
@@ -158,24 +21,24 @@ def load(csv_files_path, unique=True, targettype='onehot'):
     else:
         print(f"Found {len(csv_files)} CSV files")
 
-    if unique:
-        targets_numeric = create_unique_event_mapping(csv_files)
-    else:
-        targets_numeric = create_event_type_mapping(csv_files)
+    # if unique:
+    #     targets_numeric = create_unique_event_mapping(csv_files)
+    # else:
+    #     targets_numeric = create_event_type_mapping(csv_files)
 
     # Keep numeric targets for assignment to DataFrame
-    if targettype == 'onehot':
-        # We'll create one-hot vectors later, but use numeric for now
-        targets_onehot = target_to_vector(targets_numeric)
-        print(f"One-hot encoded targets created with {len(set(targets_numeric.values()))} classes")
-    elif targettype == 'num':
-        targets_onehot = None
-    else:
-        raise ValueError("Invalid targettype. Use 'onehot' or 'num'.")
+    # if targettype == 'onehot':
+    #     # We'll create one-hot vectors later, but use numeric for now
+    #     targets_onehot = target_to_vector(targets_numeric)
+    #     print(f"One-hot encoded targets created with {len(set(targets_numeric.values()))} classes")
+    # elif targettype == 'num':
+    #     targets_onehot = None
+    # else:
+    #     raise ValueError("Invalid targettype. Use 'onehot' or 'num'.")
 
-    print(f"Event type mapping:")
-    for event_type, target in sorted(targets_numeric.items()):
-        print(f"  {event_type}: target {target}")
+    # print(f"Event type mapping:")
+    # for event_type, target in sorted(targets_numeric.items()):
+    #     print(f"  {event_type}: target {target}")
 
     # List to store all dataframes
     dataframes = []
@@ -228,41 +91,23 @@ def load(csv_files_path, unique=True, targettype='onehot'):
         if '_sample' in event_name:
             event_name = event_name.split('_sample')[0]
             
-        event_type = event_name.split('_')[0]
-        
-        # Get numeric target for DataFrame assignment
-        target_numeric = targets_numeric[event_type]
-        
-        # Add columns to dataframe
-        df['target'] = target_numeric  # Use numeric target for all rows
-        df['event_type'] = event_type
+    
+        # Add column to dataframe
         df['full_event_name'] = event_name
-        
-        # If one-hot encoding requested, add one-hot vector as a separate column
-        if targettype == 'onehot':
-            onehot_vector = targets_onehot[event_type]
-            df['target_onehot'] = [onehot_vector] * len(df)  # Same vector for all rows in this file
         
         # Append to list
         dataframes.append(df)
-        print(f"  -> Added {len(df)} events with target {target_numeric} (event type: {event_type})")
+        print(f"  -> Added {len(df)} events (event name: {event_name})")
 
     # Combine all dataframes
     if dataframes:
         combined_df = pd.concat(dataframes, ignore_index=True)
         print(f"\nCombined dataset: {len(combined_df)} total events")
-        
-        print(f"\nTarget distribution:")
-        print(combined_df['target'].value_counts().sort_index())
-        
+        print(f"Columns: {combined_df.columns.tolist()}")
         # Display first few rows with updated column names
         print(f"\nFirst few rows:")
-        if targettype == 'onehot':
-            display_cols = ['event', 'runNumber', 'eventNumber', 'channelNumber', 'jet_n', 'lep_n', 
-                          'target', 'target_onehot', 'event_type', 'full_event_name']
-        else:
-            display_cols = ['event', 'runNumber', 'eventNumber', 'channelNumber', 'jet_n', 'lep_n', 
-                          'target', 'event_type', 'full_event_name']
+        display_cols = ['event', 'runNumber', 'eventNumber', 'channelNumber', 'jet_n', 'lep_n', 'full_event_name']
+
         
         # Only show columns that exist in the dataframe
         available_cols = [col for col in display_cols if col in combined_df.columns]
@@ -274,7 +119,147 @@ def load(csv_files_path, unique=True, targettype='onehot'):
 
 
     print(f"\nFinal dataset shape: {combined_df.shape}")
+
+    # Extract target values
+    combined_df = target_extract(combined_df)
     return combined_df
+
+
+
+def target_extract(df):
+    """
+    Extracts target values from the DataFrame based on the "channelNumber" column.
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+    Returns:
+        df (pd.DataFrame): DataFrame with additional target columns.
+    """
+
+    # Define particle grouips (channel numbers corresonding to which event)
+    #got channel number from https://www.pi.uni-bonn.de/brock/en/results/data/t00000029.pdf p65
+    particle_groups = {}
+
+    # ttbar production
+    particle_groups[410000] = 'ttbar'
+
+    # single top production (all variants)
+    single_top_channels = [410011, 410012, 410013, 410014, 410025, 410026, 410062, 410063, 410050]
+    for channel in single_top_channels:
+        particle_groups[channel] = 'singletop'
+
+    # Z boson production (original range)
+    for channel in [361100, 361101, 361102, 361103, 361104, 361105, 361106, 361107, 361108]:
+        particle_groups[channel] = 'Z'
+
+    # Z+jets production (original range)
+    for i in range(361400, 361442):
+        particle_groups[i] = 'Z'
+
+    # Z boson in association with jets (from table: 364100-364141)
+    for i in range(364100, 364142):
+        particle_groups[i] = 'Z'
+
+    # W boson production (original range)
+    for i in range(361500, 361506):
+        particle_groups[i] = 'W'
+
+    # W boson in association with jets (from table: 364156-364197)
+    for i in range(364156, 364198):
+        particle_groups[i] = 'W'
+
+    # Diboson production (original)
+    for channel in [363359, 363360, 363492, 363356, 363490, 363358, 363489, 363491, 363493]:
+        particle_groups[channel] = 'VV'
+
+    # Diboson production (from table)
+    diboson_from_table = [361600, 361601, 361602, 361603, 361604, 361606, 361607, 361609, 361610]
+    for channel in diboson_from_table:
+        particle_groups[channel] = 'VV'
+
+    # Higgs production
+    for channel in [345324, 345323, 345060, 344235, 341947, 341964, 343981, 345041, 345318, 345319, 341081]:
+        particle_groups[channel] = 'H'
+
+    # BSM production
+    particle_groups[301325] = 'ZPrime'
+    particle_groups[392985] = 'SUSY'
+    
+    # Add target columns based on channelNumber
+    channels = np.unique(df['channelNumber'])
+    uniqueTargets = np.unique([particle_groups[i] for i in channels if i in particle_groups])
+    nTargets = len(uniqueTargets)
+
+    # Apply the function to get all three return values
+    def process_channel(channel):
+        return channel_to_onehot(channel, particle_groups, uniqueTargets)
+    
+    # Get results for all channels
+    results = df['channelNumber'].apply(process_channel)
+    
+    # Extract the three components
+    df['onehot_target'] = results.apply(lambda x: x[0])
+    df['numeric_target'] = results.apply(lambda x: x[1])
+    df['event_type'] = results.apply(lambda x: x[2])
+    
+    print(f"\nTarget extraction complete:")
+    print(f"Unique particle types: {uniqueTargets}")
+    print(f"Number of classes: {nTargets}")
+    
+    # Show distribution
+    print(f"\nParticle type distribution:")
+    print(df['event_type'].value_counts())
+    
+    return df
+
+
+
+
+def channel_to_onehot(channel_number, particle_groups, uniqueTargets):
+    """
+    Convert channel number to one-hot encoded target vector, numerical target, and particle type
+    
+    Args:
+        channel_number: The channel number (or Series) to convert
+        particle_groups: Dictionary mapping channel numbers to particle types
+        uniqueTargets: Array of unique targets found in the actual data
+    
+    Returns:
+        tuple: (onehot_vector, numerical_target, particle_type) or (None, -1, 'Unknown') if channel not found
+    """
+    import numpy as np
+    import pandas as pd
+    
+    # Handle Series input (for apply operations)
+    if isinstance(channel_number, pd.Series):
+        return channel_number.apply(lambda x: channel_to_onehot(x, particle_groups, uniqueTargets))
+    
+    # Use the uniqueTargets from your data, not all possible particle types
+    particle_to_index = {particle: idx for idx, particle in enumerate(sorted(uniqueTargets))}
+    
+    # Check if channel exists in particle_groups
+    if channel_number not in particle_groups:
+        print(f"Warning: Channel {channel_number} not found in particle_groups")
+        return None, -1, 'Unknown'
+    
+    # Get particle type for this channel
+    particle_type = particle_groups[channel_number]
+    
+    # Check if this particle type is in our actual data
+    if particle_type not in particle_to_index:
+        print(f"Warning: Particle type {particle_type} not found in uniqueTargets")
+        return None, -1, particle_type
+    
+    # Get index for this particle type
+    target_index = particle_to_index[particle_type]
+    
+    # Create one-hot vector with correct size
+    onehot = np.zeros(len(uniqueTargets))
+    onehot[target_index] = 1
+    
+    return onehot, target_index, particle_type
+
+
+
 
 
 def clean(df):
