@@ -264,7 +264,7 @@ def channel_to_onehot(channel_number, particle_groups, uniqueTargets):
     
     # Check if this particle type is in our actual data
     if particle_type not in particle_to_index:
-        print(f"Warning: Particle type {particle_type} not found in uniqueTargets")
+        #print(f"Warning: Particle type {particle_type} not found in uniqueTargets")
         return None, -1, particle_type
     
     # Get index for this particle type
