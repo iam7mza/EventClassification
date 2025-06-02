@@ -183,7 +183,25 @@ def target_extract(df):
     # BSM production
     particle_groups[301325] = 'ZPrime'
     particle_groups[392985] = 'SUSY'
+
+    #C1N2
+    particle_groups[392220] = 'C1N2'
+    particle_groups[392217] = 'C1N2'
+    particle_groups[392223] = 'C1N2'
     
+    #gluon gluon
+    particle_groups[370114] = 'GG'
+    particle_groups[370118] = 'GG'
+    particle_groups[370129] = 'GG'
+    particle_groups[370144] = 'GG'
+
+    #Zprime750
+    particle_groups[301324] = 'Zprime750'
+
+    #Zprime2000
+    particle_groups[301329] = 'Zprime2000'
+
+
     # Add target columns based on channelNumber
     channels = np.unique(df['channelNumber'])
     uniqueTargets = np.unique([particle_groups[i] for i in channels if i in particle_groups])

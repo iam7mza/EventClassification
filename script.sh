@@ -2,7 +2,7 @@
 # filepath: /home/hamza/ML/script.sh
 
 # Set the sample size as a variable
-SAMPLE_SIZE=200
+SAMPLE_SIZE=1000
 
 # Create output directory
 mkdir -p csv_output
