@@ -256,7 +256,7 @@ def channel_to_onehot(channel_number, particle_groups, uniqueTargets):
     
     # Check if channel exists in particle_groups
     if channel_number not in particle_groups:
-        print(f"Warning: Channel {channel_number} not found in particle_groups")
+        #print(f"Warning: Channel {channel_number} not found in particle_groups")
         return None, -1, 'Unknown'
     
     # Get particle type for this channel
