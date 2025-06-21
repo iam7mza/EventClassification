@@ -40,7 +40,6 @@ Thumbs.db
 EOF__pycache__/
 *.pyc
 *.pyo
-models/
 *.pkl
 *.keras
 *.h5
