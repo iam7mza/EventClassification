@@ -140,12 +140,12 @@ def target_extract(df):
     particle_groups = {}
 
     # ttbar production
-    particle_groups[410000] = 'ttbar'
+    particle_groups[410000] = 'top' #ttbar events
 
     # single top production (all variants)
     single_top_channels = [410011, 410012, 410013, 410014, 410025, 410026, 410062, 410063, 410050]
     for channel in single_top_channels:
-        particle_groups[channel] = 'singletop'
+        particle_groups[channel] = 'top' #single top events
 
     # Z boson production (original range)
     for channel in [361100, 361101, 361102, 361103, 361104, 361105, 361106, 361107, 361108]:
@@ -180,7 +180,7 @@ def target_extract(df):
     for channel in [345324, 345323, 345060, 344235, 341947, 341964, 343981, 345041, 345318, 345319, 341081]:
         particle_groups[channel] = 'H'
 
-    # BSM production
+    # BSM production #NOTE: BSM PARTICLES ARE EXCLUDED
     particle_groups[301325] = 'ZPrime'
     particle_groups[392985] = 'SUSY'
 
@@ -195,7 +195,7 @@ def target_extract(df):
     particle_groups[370129] = 'GG'
     particle_groups[370144] = 'GG'
 
-    #Zprime750
+    # Zprime750
     particle_groups[301324] = 'Zprime750'
 
     #Zprime2000

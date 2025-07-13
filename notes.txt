@@ -1,0 +1,46 @@
+Changes will be documented here!
+
+Decreasing correlation and scaling using QuantileTransformer (normal): 
+increaded accuracy to 65%, and the model is stable (simple dense model 128 to 64 to num_classes) at 50 epocs (improvement is very possible)
+
+QuantileTransformer (uniform):
+64% but validation accuracy is very stable and good (I think is one is the better one)
+
+PCA (Dimentional reduction): 0.95:
+Accuracy 65%, but validation is at 63% with signs of overfitting
+0.70: Accuracy 60%, validation loss is a bit higher. Likely to get better with more training
+UPDATE: trained for 100 epocs and shit did not get better. Accuracy at 62% and I'm just overfitting
+0.98: Accuracy 66% with slight overfitting (will continue with this one until handeling overfitting later)
+
+
+
+SMOTE: accuracy increased strongly for test set but validation went downhill 
+Borderline-SMOTE: same problem
+Safe Level SMOTE: very good but take fucking forever to run and sometimes gets stuck
+
+conclusion: skip SMOTE
+
+
+
+Class weights for to fix imbalance: DID NOT WORK FOR SHIT. just made the model worse with 0 improvement to classifying under represented classes
+---------------------------------------------------------
+Simple Dense Model:
+adding two layers (256 and 128) practically did nothing (64%). however, it appears that the model will continue to get better with more traning. 
+slight overfitting of 1% is observed
+
+making the model smaller (64 to 32 to num_classes) made it a little bit worse 63% with almost no overfitting
+
+bigger model (128 - 256 - 512 - 256 - 128 - 64 - 32 - num_classes) managed to overfit (no dropout) 93% accuracy. val is bad at 60%
+with dropout of 0.2 in each layer accuracy went down to 63% for both test and validation
+
+---------------------------------------------------------
+CNN model:
+first test with two 1D conv then 2 dense layer resulted in 56% accuracy. The traning takes time but the model is very stable (with 0.2 dropout)
+wihtout dropout 60% accuracy with 4% overfitting
+
+Second test: using no PCA -> 66% accuracy with 3% overfitting!! VERY PROMISSING
+
+adding a 3rd conv layer made the model stronger (able to overfit)
+---------------------------------------------------------
+BDT model:
+65% accuracy
